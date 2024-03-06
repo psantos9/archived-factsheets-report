@@ -1,19 +1,16 @@
-import { ref, unref, computed, watch } from 'vue'
+import { ref, unref, computed } from 'vue'
 import { print } from 'graphql/language/printer'
 import Bottleneck from 'bottleneck'
 import FetchFactSheetArchivedEventQuery from '@/graphql/FetchFactSheetArchivedEventQuery.gql'
-import { getInstance } from '@/worker'
+import { CustomReportWorker } from '@/worker'
+import InlineWorker from '@/worker?worker&inline'
+import { wrap } from 'comlink'
 import '@leanix/reporting'
 import type { IRow, IFactSheetArchivedEvent } from '@/types'
 
-; (async () => {
-  // @ts-ignore
-  const instance = getInstance()
-  setInterval(() => {
-    instance.logSomething()
-  }, 1000)
-})()
+export const getWorkerInstance = (): typeof CustomReportWorker => wrap<typeof CustomReportWorker>(new InlineWorker())
 
+const worker = getWorkerInstance()
 const factSheetIndex = ref<Record<string, IRow>>({})
 
 const limiter = new Bottleneck({
@@ -43,11 +40,30 @@ const fetchFactSheetArchivationEvent = limiter.wrap(async (factSheetId: string) 
 })
 
 const fetchFactSheetArchivationData = async (factSheetId: string) => {
-  const data = await fetchFactSheetArchivationEvent(factSheetId)
+  const workspaceId = lx.currentSetup.settings.workspace.id
   const row = unref(factSheetIndex)?.[factSheetId] ?? null
   if (row === null) throw new Error(`FactSheet ${factSheetId} is not indexed`)
-  const { createdAt: archivedAt, user: { id: userId, displayName: userName, email: userEmail }, comment } = data
+  let event = import.meta.env.PROD ? await worker?.getFactSheetArchivedEvent({ workspaceId, factSheetId }) : null
+  if (event === null) {
+    event = await fetchFactSheetArchivationEvent(factSheetId)
+    worker?.setFactSheetArchivedEvent({ workspaceId, factSheetId, event })
+  }
+  const { createdAt: archivedAt, user: { id: userId, displayName: userName, email: userEmail }, comment } = event
   Object.assign(row, { userId, userName, userEmail, comment, archivedAt })
+}
+
+const openSidePane = async (params: { factSheetType: string, factSheetId: string }) => {
+  const { factSheetId, factSheetType } = params
+  lx.openSidePane({
+    factSheet: {
+      type: 'FactSheet',
+      factSheetId,
+      factSheetType,
+      detailFields: ['name', 'externalId'],
+      relations: [],
+      pointOfView: { id: '1', changeSet: { type: 'dateOnly', date: new Date().toISOString().split('T')[0] } }
+    }
+  })
 }
 
 const initReport = async () => {
@@ -56,11 +72,12 @@ const initReport = async () => {
     facets: [
       {
         key: 'Filter',
-        label: 'Deleted factsheets',
+        label: 'Archived factsheets',
         attributes: ['displayName'],
         callback: (data) => {
+          factSheetIndex.value = {}
           data.forEach((factSheet) => {
-            const { id: factSheetId, type: factSheetType, name: factSheetName } = factSheet
+            const { id: factSheetId, type: factSheetType, displayName: factSheetName } = factSheet
             if (!unref(factSheetIndex)[factSheetId]) {
               const row: IRow = {
                 factSheetId,
@@ -90,6 +107,7 @@ const initReport = async () => {
 export const useReport = () => {
   return {
     initReport,
+    openSidePane,
     rows: computed(() => Object.values(unref(factSheetIndex)))
   }
 }
