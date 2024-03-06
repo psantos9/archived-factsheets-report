@@ -1,0 +1,16 @@
+query ($factSheetId: ID!){
+  allLogEvents(factSheetId: $factSheetId, eventTypes: [FACT_SHEET_ARCHIVED], first: 1) {
+    edges {
+      node {
+        id
+        comment:message
+        createdAt
+        user {
+          id
+          displayName
+          email
+        }
+      }
+    }
+  }
+}

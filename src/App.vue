@@ -1,11 +1,13 @@
 <template>
   <div>
-    Hi there
-
-</div>
+    <div v-for="row in rows" :key="row.factSheetId">
+    {{ row }}
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-const a = '23'
-
+import { useReport } from '@/composables/useReport'
+const { initReport, rows } = useReport()
+initReport()
 </script>

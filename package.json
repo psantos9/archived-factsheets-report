@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@leanix/reporting": "^0.4.120",
+    "bottleneck": "^2.19.5",
+    "comlink": "^4.4.1",
+    "idb": "^8.0.0",
     "vue": "^3.0.0"
   },
   "devDependencies": {
@@ -18,20 +21,20 @@
     "@tsconfig/node18": "^2.0.0",
     "@types/node": "^18.0.0",
     "@vitejs/plugin-vue": "^4.0.0",
-    "@vue/eslint-config-prettier": "^7.0.0",
-    "@vue/eslint-config-typescript": "^11.0.0",
-    "@vue/tsconfig": "^0.3.2",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "@vue/tsconfig": "^0.5.1",
     "autoprefixer": "^10.0.0",
-    "eslint": "^8.22.0",
-    "eslint-plugin-vue": "^9.3.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.22.0",
+    "graphql": "^16.8.1",
     "npm-run-all": "^4.0.0",
     "postcss": "^8.0.0",
-    "prettier": "^2.7.1",
-    "tailwindcss": "^3.0.0",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5.0.0",
     "vite": "^4.0.0",
+    "vite-plugin-graphql-loader": "^3.0.1",
     "vite-plugin-lxr": "^4.0.0",
-    "vue-tsc": "^1.0.0"
+    "vue-tsc": "^2.0.4"
   },
   "name": "archived-factsheets-report",
   "author": "LeanIX GmbH",
