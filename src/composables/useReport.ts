@@ -76,7 +76,7 @@ const getReportConfiguration = (): lxr.ReportConfiguration => {
   const config: lxr.ReportConfiguration = {
     facets: [
       {
-        key: (facetKey + 1).toString(),
+        key: facetKey.toString(),
         label: 'Archived factsheets',
         attributes: ['displayName', 'status'],
         callback: (data) => {
@@ -108,9 +108,9 @@ const getReportConfiguration = (): lxr.ReportConfiguration => {
         facetFiltersChangedCallback: async (selection) => {
           const hasFacetTrashBin = selection.facets.findIndex(({ facetKey }) => facetKey === 'TrashBin') > -1
           // Race condition...
-          if (!hasFacetTrashBin) lx.updateConfiguration(getReportConfiguration())
+          // if (!hasFacetTrashBin) lx.updateConfiguration(getReportConfiguration())
           // No race condition...
-          // if (!hasFacetTrashBin) setTimeout(() => lx.updateConfiguration(getReportConfiguration()), 1000)
+          if (!hasFacetTrashBin) setTimeout(() => lx.updateConfiguration(getReportConfiguration()), 1000)
         },
         defaultFilters: [
           {
