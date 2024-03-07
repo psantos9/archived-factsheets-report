@@ -80,7 +80,6 @@ const getReportConfiguration = (): lxr.ReportConfiguration => {
         label: 'Archived factsheets',
         attributes: ['displayName', 'status'],
         callback: (data) => {
-          console.log('DATA', new Date().getTime(), data.length)
           factSheetIndex.value = {}
           const excludedFactSheets: string[] = []
           data.forEach((factSheet) => {
