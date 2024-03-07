@@ -2,7 +2,6 @@ import { expose } from 'comlink'
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 import type { IFactSheetArchivedEvent } from '@/types'
 
-/*
 interface CustomReportDB extends DBSchema {
   events: {
     key: string
@@ -21,27 +20,19 @@ const getDb = async (): Promise<IDBPDatabase<CustomReportDB>> => openDB<CustomRe
     }
   }
 )
-*/
 
 const getItemKey = ({ workspaceId, factSheetId }: { workspaceId: string, factSheetId: string }) => `${workspaceId}:${factSheetId}`
 
 export const CustomReportWorker = {
   async setFactSheetArchivedEvent(params: { workspaceId: string, factSheetId: string, event: IFactSheetArchivedEvent }) {
     const { workspaceId, factSheetId, event } = params
-    /*
     const db = await getDb()
     await db.put('events', { workspaceId, factSheetId, event }, getItemKey({ workspaceId, factSheetId }))
-    */
-    console.log('SET FACTSHEET EVENT', workspaceId, factSheetId, event)
   },
   async getFactSheetArchivedEvent(params: { workspaceId: string, factSheetId: string }): Promise<IFactSheetArchivedEvent | null> {
     const { workspaceId, factSheetId } = params
-    /*
     const db = await getDb()
     const { event = null } = await db.get('events', getItemKey({ workspaceId, factSheetId })) ?? {}
-    */
-    const event = null
-    console.log('GOT FACTSHEET EVENT', workspaceId, factSheetId, event)
     return event
   }
 }

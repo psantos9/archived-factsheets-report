@@ -48,6 +48,10 @@ const fetchFactSheetArchivationData = async (factSheetId: string) => {
     event = await fetchFactSheetArchivationEvent(factSheetId)
     worker?.setFactSheetArchivedEvent({ workspaceId, factSheetId, event })
   }
+  if (event == null) {
+    console.warn(`Factsheet ${factSheetId} is not archived!`)
+    return
+  }
   const { createdAt: archivedAt, user: { id: userId, displayName: userName, email: userEmail }, comment } = event
   Object.assign(row, { userId, userName, userEmail, comment, archivedAt })
 }
@@ -66,18 +70,25 @@ const openSidePane = async (params: { factSheetType: string, factSheetId: string
   })
 }
 
-const initReport = async () => {
-  await lx.init()
-  await lx.ready({
+let facetKey = 0
+const getReportConfiguration = (): lxr.ReportConfiguration => {
+  facetKey++
+  const config: lxr.ReportConfiguration = {
     facets: [
       {
-        key: 'Filter',
+        key: (facetKey + 1).toString(),
         label: 'Archived factsheets',
-        attributes: ['displayName'],
+        attributes: ['displayName', 'status'],
         callback: (data) => {
+          console.log('DATA', new Date().getTime(), data.length)
           factSheetIndex.value = {}
+          const excludedFactSheets: string[] = []
           data.forEach((factSheet) => {
-            const { id: factSheetId, type: factSheetType, displayName: factSheetName } = factSheet
+            const { id: factSheetId, type: factSheetType, displayName: factSheetName, status } = factSheet
+            if (status !== 'ARCHIVED') {
+              excludedFactSheets.push(factSheetId)
+              return
+            }
             if (!unref(factSheetIndex)[factSheetId]) {
               const row: IRow = {
                 factSheetId,
@@ -93,6 +104,14 @@ const initReport = async () => {
               fetchFactSheetArchivationData(factSheetId)
             }
           })
+          if (excludedFactSheets.length) lx.sendExcludedFactSheets(excludedFactSheets)
+        },
+        facetFiltersChangedCallback: async (selection) => {
+          const hasFacetTrashBin = selection.facets.findIndex(({ facetKey }) => facetKey === 'TrashBin') > -1
+          // Race condition...
+          if (!hasFacetTrashBin) lx.updateConfiguration(getReportConfiguration())
+          // No race condition...
+          // if (!hasFacetTrashBin) setTimeout(() => lx.updateConfiguration(getReportConfiguration()), 1000)
         },
         defaultFilters: [
           {
@@ -101,7 +120,13 @@ const initReport = async () => {
         ]
       }
     ]
-  })
+  }
+  return config
+}
+
+const initReport = async () => {
+  await lx.init()
+  await lx.ready(getReportConfiguration())
 }
 
 export const useReport = () => {
