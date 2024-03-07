@@ -84,10 +84,7 @@ const getReportConfiguration = (): lxr.ReportConfiguration => {
           const excludedFactSheets: string[] = []
           data.forEach((factSheet) => {
             const { id: factSheetId, type: factSheetType, displayName: factSheetName, status } = factSheet
-            if (status !== 'ARCHIVED') {
-              excludedFactSheets.push(factSheetId)
-              return
-            }
+            if (status !== 'ARCHIVED') excludedFactSheets.push(factSheetId)
             if (!unref(factSheetIndex)[factSheetId]) {
               const row: IRow = {
                 factSheetId,
